@@ -123,4 +123,27 @@ Evidencia:
 `	ext
 PEGAR OUTPUT AQUÍ
 `
+---
+
+**2026-02-09 21:11:40 -05:00 (America/Guayaquil)**
+Sprint: SPR-003
+Estado resultante: DONE/APROBADO
+Resumen:
+- Flyway ejecutó V1 y V2 correctamente en PostgreSQL 17.7
+- Seed mínimo aplicado
+
+Evidencia:
+- Comandos ejecutados por el usuario:
+  - `$env:SPRING_DATASOURCE_URL=jdbc:postgresql://localhost:5432/sisferrete`
+  - `$env:SPRING_DATASOURCE_USERNAME=postgres`
+  - `$env:SPRING_DATASOURCE_PASSWORD=********`
+  - `cd backend`
+  - `./mvnw spring-boot:run`
+- Output:
+```text
+Migrating schema "public" to version "1 - platform base"
+Migrating schema "public" to version "2 - platform seed"
+Successfully applied 2 migrations to schema "public"
+BUILD SUCCESS
+```
 <!-- EOF -->

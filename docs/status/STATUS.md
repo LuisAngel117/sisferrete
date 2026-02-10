@@ -23,7 +23,7 @@
 | Sprint | Título | Stage | Estado | Evidencia (LOG) | RFC/ADR Relacionados | Notas |
 |------:|--------|:-----:|--------|-----------------|----------------------|------|
 | SPR-002 | Scaffolding monorepo (backend+frontend) + tooling base | 1 | DONE/APROBADO | LOG 2026-02-10 | N/A | Evidencia validada (mvnw test/run, health/ping, npm install/dev) |
-| SPR-003 | DB + migraciones base (tenants/branches/users/roles/permissions) + seed demo | 1 | READY_FOR_VALIDATION | LOG 2026-02-10 | N/A | Commits: SPR-003: db migrations base + seed; SPR-003: flyway upgrade postgres 17; Migraciones V1__platform_base.sql, V2__platform_seed.sql |
+| SPR-003 | DB + migraciones base (tenants/branches/users/roles/permissions) + seed demo | 1 | DONE/APROBADO | LOG 2026-02-10 | N/A | Evidencia validada: Flyway V1/V2 OK (Postgres 17.7) |
 | TBD | TBD | TBD | TBD | TBD | TBD | Se completa cuando exista SPR-MASTER |
 
 <!-- EOF -->
