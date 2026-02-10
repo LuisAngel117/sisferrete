@@ -24,7 +24,7 @@
 |------:|--------|:-----:|--------|-----------------|----------------------|------|
 | SPR-002 | Scaffolding monorepo (backend+frontend) + tooling base | 1 | DONE/APROBADO | LOG 2026-02-10 | N/A | Evidencia validada (mvnw test/run, health/ping, npm install/dev) |
 | SPR-003 | DB + migraciones base (tenants/branches/users/roles/permissions) + seed demo | 1 | DONE/APROBADO | LOG 2026-02-10 | N/A | Evidencia validada: Flyway V1/V2 OK (Postgres 17.7) |
-| SPR-005 | Auditoría base (audit_events) + hook para acciones sensibles | 1 | READY_FOR_VALIDATION | LOG 2026-02-09 | N/A | commit: PENDIENTE; archivos: V4__audit_events_columns.sql, AuditService, AuthService, SecurityConfig, sprint5.ps1 |
+| SPR-005 | Auditoría base (audit_events) + hook para acciones sensibles | 1 | READY_FOR_VALIDATION | LOG 2026-02-09 | N/A | commit: 26195b3; archivos: V4__audit_events_columns.sql, AuditService, AuthService, SecurityConfig, sprint5.ps1 |
 | TBD | TBD | TBD | TBD | TBD | TBD | Se completa cuando exista SPR-MASTER |
 
 <!-- EOF -->
