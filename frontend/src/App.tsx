@@ -58,6 +58,17 @@ type CatalogUom = {
   isActive: boolean;
 };
 
+type Product = {
+  id: string;
+  name: string;
+  sku?: string | null;
+  barcode?: string | null;
+  categoryId?: string | null;
+  brandId?: string | null;
+  uomId: string;
+  isActive: boolean;
+};
+
 const API_BASE = "http://localhost:8080";
 
 function App() {
@@ -115,6 +126,34 @@ function App() {
     code: "",
     name: "",
     allowsDecimals: false,
+    isActive: true,
+  });
+
+  const [productStatus, setProductStatus] = useState("");
+  const [productLoading, setProductLoading] = useState(false);
+  const [productQuery, setProductQuery] = useState("");
+  const [lookupTerm, setLookupTerm] = useState("");
+  const [products, setProducts] = useState<Product[]>([]);
+  const [lookupResults, setLookupResults] = useState<Product[]>([]);
+
+  const [newProduct, setNewProduct] = useState({
+    name: "",
+    sku: "",
+    barcode: "",
+    categoryId: "",
+    brandId: "",
+    uomId: "",
+    isActive: true,
+  });
+
+  const [updateProduct, setUpdateProduct] = useState({
+    id: "",
+    name: "",
+    sku: "",
+    barcode: "",
+    categoryId: "",
+    brandId: "",
+    uomId: "",
     isActive: true,
   });
 
@@ -791,6 +830,134 @@ function App() {
       setCatalogStatus(err instanceof Error ? err.message : "Error inesperado.");
     } finally {
       setCatalogLoading(false);
+    }
+  };
+
+  const fetchProducts = async () => {
+    setProductStatus("");
+    setProductLoading(true);
+    try {
+      const params = new URLSearchParams();
+      if (productQuery.trim()) {
+        params.set("query", productQuery.trim());
+      }
+      params.set("limit", "50");
+      const res = await fetch(
+        `${API_BASE}/api/admin/products?${params.toString()}`,
+        {
+          headers: authHeaders,
+        }
+      );
+      if (!res.ok) {
+        throw new Error(await res.text());
+      }
+      const data: Product[] = await res.json();
+      setProducts(data);
+      setProductStatus("Productos cargados.");
+    } catch (err) {
+      setProductStatus(err instanceof Error ? err.message : "Error inesperado.");
+    } finally {
+      setProductLoading(false);
+    }
+  };
+
+  const lookupProducts = async () => {
+    setProductStatus("");
+    if (!lookupTerm.trim()) {
+      setProductStatus("Ingresa un término para lookup.");
+      return;
+    }
+    setProductLoading(true);
+    try {
+      const params = new URLSearchParams();
+      params.set("term", lookupTerm.trim());
+      const res = await fetch(
+        `${API_BASE}/api/admin/products/lookup?${params.toString()}`,
+        {
+          headers: authHeaders,
+        }
+      );
+      if (!res.ok) {
+        throw new Error(await res.text());
+      }
+      const data: Product[] = await res.json();
+      setLookupResults(data);
+      setProductStatus("Lookup completado.");
+    } catch (err) {
+      setProductStatus(err instanceof Error ? err.message : "Error inesperado.");
+    } finally {
+      setProductLoading(false);
+    }
+  };
+
+  const createProduct = async () => {
+    setProductStatus("");
+    setProductLoading(true);
+    try {
+      const res = await fetch(`${API_BASE}/api/admin/products`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...authHeaders,
+        },
+        body: JSON.stringify({
+          name: newProduct.name,
+          sku: newProduct.sku,
+          barcode: newProduct.barcode,
+          categoryId: newProduct.categoryId || null,
+          brandId: newProduct.brandId || null,
+          uomId: newProduct.uomId || null,
+          isActive: newProduct.isActive,
+        }),
+      });
+      if (!res.ok) {
+        throw new Error(await res.text());
+      }
+      await fetchProducts();
+      setProductStatus("Producto creado.");
+    } catch (err) {
+      setProductStatus(err instanceof Error ? err.message : "Error inesperado.");
+    } finally {
+      setProductLoading(false);
+    }
+  };
+
+  const updateProductData = async () => {
+    setProductStatus("");
+    if (!updateProduct.id) {
+      setProductStatus("Debes indicar id del producto.");
+      return;
+    }
+    setProductLoading(true);
+    try {
+      const res = await fetch(
+        `${API_BASE}/api/admin/products/${updateProduct.id}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            ...authHeaders,
+          },
+          body: JSON.stringify({
+            name: updateProduct.name,
+            sku: updateProduct.sku,
+            barcode: updateProduct.barcode,
+            categoryId: updateProduct.categoryId || null,
+            brandId: updateProduct.brandId || null,
+            uomId: updateProduct.uomId || null,
+            isActive: updateProduct.isActive,
+          }),
+        }
+      );
+      if (!res.ok) {
+        throw new Error(await res.text());
+      }
+      await fetchProducts();
+      setProductStatus("Producto actualizado.");
+    } catch (err) {
+      setProductStatus(err instanceof Error ? err.message : "Error inesperado.");
+    } finally {
+      setProductLoading(false);
     }
   };
 
@@ -1681,6 +1848,321 @@ function App() {
             {uoms.length > 0 && (
               <pre className="rounded-md bg-slate-100 p-3 text-xs text-slate-700">
                 {JSON.stringify(uoms, null, 2)}
+              </pre>
+            )}
+          </div>
+        </section>
+
+        <section className="rounded-xl border bg-white p-6 shadow-sm">
+          <h2 className="text-base font-semibold">Productos base</h2>
+          <p className="mt-1 text-sm text-slate-500">
+            CRUD de productos con búsqueda rápida (SKU/barcode/nombre).
+          </p>
+
+          <div className="mt-4 grid gap-4">
+            <div className="flex flex-wrap gap-3">
+              <button
+                type="button"
+                onClick={() => {
+                  fetchCategories();
+                  fetchBrands();
+                  fetchUoms();
+                }}
+                className="h-10 rounded-md border border-slate-300 px-4 text-sm font-semibold"
+                disabled={productLoading || catalogLoading}
+              >
+                Cargar catálogos
+              </button>
+              <button
+                type="button"
+                onClick={fetchProducts}
+                className="h-10 rounded-md border border-slate-300 px-4 text-sm font-semibold"
+                disabled={productLoading}
+              >
+                Buscar productos
+              </button>
+            </div>
+
+            <div className="grid gap-3">
+              <label className="text-sm font-medium text-slate-700">
+                Búsqueda (nombre/SKU/barcode)
+              </label>
+              <input
+                value={productQuery}
+                onChange={(event) => setProductQuery(event.target.value)}
+                placeholder="martillo / SKU-001 / 770123"
+                className="h-10 rounded-md border border-slate-200 px-3 text-sm"
+              />
+            </div>
+
+            <div className="grid gap-3">
+              <label className="text-sm font-medium text-slate-700">
+                Lookup rápido (POS)
+              </label>
+              <div className="flex flex-wrap gap-3">
+                <input
+                  value={lookupTerm}
+                  onChange={(event) => setLookupTerm(event.target.value)}
+                  placeholder="barcode o sku"
+                  className="h-10 flex-1 rounded-md border border-slate-200 px-3 text-sm"
+                />
+                <button
+                  type="button"
+                  onClick={lookupProducts}
+                  className="h-10 rounded-md border border-slate-300 px-4 text-sm font-semibold"
+                  disabled={productLoading}
+                >
+                  Lookup
+                </button>
+              </div>
+            </div>
+
+            <div className="grid gap-6 lg:grid-cols-2">
+              <div className="grid gap-3">
+                <h3 className="text-sm font-semibold text-slate-700">
+                  Crear producto
+                </h3>
+                <input
+                  value={newProduct.name}
+                  onChange={(event) =>
+                    setNewProduct((prev) => ({
+                      ...prev,
+                      name: event.target.value,
+                    }))
+                  }
+                  placeholder="Nombre"
+                  className="h-10 rounded-md border border-slate-200 px-3 text-sm"
+                />
+                <input
+                  value={newProduct.sku}
+                  onChange={(event) =>
+                    setNewProduct((prev) => ({
+                      ...prev,
+                      sku: event.target.value,
+                    }))
+                  }
+                  placeholder="SKU (opcional)"
+                  className="h-10 rounded-md border border-slate-200 px-3 text-sm"
+                />
+                <input
+                  value={newProduct.barcode}
+                  onChange={(event) =>
+                    setNewProduct((prev) => ({
+                      ...prev,
+                      barcode: event.target.value,
+                    }))
+                  }
+                  placeholder="Barcode (opcional)"
+                  className="h-10 rounded-md border border-slate-200 px-3 text-sm"
+                />
+                <select
+                  value={newProduct.categoryId}
+                  onChange={(event) =>
+                    setNewProduct((prev) => ({
+                      ...prev,
+                      categoryId: event.target.value,
+                    }))
+                  }
+                  className="h-10 rounded-md border border-slate-200 px-3 text-sm"
+                >
+                  <option value="">Categoría (opcional)</option>
+                  {categories.map((category) => (
+                    <option key={category.id} value={category.id}>
+                      {category.code} - {category.name}
+                    </option>
+                  ))}
+                </select>
+                <select
+                  value={newProduct.brandId}
+                  onChange={(event) =>
+                    setNewProduct((prev) => ({
+                      ...prev,
+                      brandId: event.target.value,
+                    }))
+                  }
+                  className="h-10 rounded-md border border-slate-200 px-3 text-sm"
+                >
+                  <option value="">Marca (opcional)</option>
+                  {brands.map((brand) => (
+                    <option key={brand.id} value={brand.id}>
+                      {brand.code} - {brand.name}
+                    </option>
+                  ))}
+                </select>
+                <select
+                  value={newProduct.uomId}
+                  onChange={(event) =>
+                    setNewProduct((prev) => ({
+                      ...prev,
+                      uomId: event.target.value,
+                    }))
+                  }
+                  className="h-10 rounded-md border border-slate-200 px-3 text-sm"
+                >
+                  <option value="">UoM (requerida)</option>
+                  {uoms.map((uom) => (
+                    <option key={uom.id} value={uom.id}>
+                      {uom.code} - {uom.name}
+                    </option>
+                  ))}
+                </select>
+                <label className="flex items-center gap-2 text-sm text-slate-600">
+                  <input
+                    type="checkbox"
+                    checked={newProduct.isActive}
+                    onChange={(event) =>
+                      setNewProduct((prev) => ({
+                        ...prev,
+                        isActive: event.target.checked,
+                      }))
+                    }
+                  />
+                  Activo
+                </label>
+                <button
+                  type="button"
+                  onClick={createProduct}
+                  className="h-10 rounded-md bg-slate-900 text-sm font-semibold text-white"
+                  disabled={productLoading}
+                >
+                  Crear producto
+                </button>
+              </div>
+
+              <div className="grid gap-3">
+                <h3 className="text-sm font-semibold text-slate-700">
+                  Actualizar producto
+                </h3>
+                <input
+                  value={updateProduct.id}
+                  onChange={(event) =>
+                    setUpdateProduct((prev) => ({
+                      ...prev,
+                      id: event.target.value,
+                    }))
+                  }
+                  placeholder="id producto"
+                  className="h-10 rounded-md border border-slate-200 px-3 text-sm"
+                />
+                <input
+                  value={updateProduct.name}
+                  onChange={(event) =>
+                    setUpdateProduct((prev) => ({
+                      ...prev,
+                      name: event.target.value,
+                    }))
+                  }
+                  placeholder="Nombre"
+                  className="h-10 rounded-md border border-slate-200 px-3 text-sm"
+                />
+                <input
+                  value={updateProduct.sku}
+                  onChange={(event) =>
+                    setUpdateProduct((prev) => ({
+                      ...prev,
+                      sku: event.target.value,
+                    }))
+                  }
+                  placeholder="SKU (opcional)"
+                  className="h-10 rounded-md border border-slate-200 px-3 text-sm"
+                />
+                <input
+                  value={updateProduct.barcode}
+                  onChange={(event) =>
+                    setUpdateProduct((prev) => ({
+                      ...prev,
+                      barcode: event.target.value,
+                    }))
+                  }
+                  placeholder="Barcode (opcional)"
+                  className="h-10 rounded-md border border-slate-200 px-3 text-sm"
+                />
+                <select
+                  value={updateProduct.categoryId}
+                  onChange={(event) =>
+                    setUpdateProduct((prev) => ({
+                      ...prev,
+                      categoryId: event.target.value,
+                    }))
+                  }
+                  className="h-10 rounded-md border border-slate-200 px-3 text-sm"
+                >
+                  <option value="">Categoría (opcional)</option>
+                  {categories.map((category) => (
+                    <option key={category.id} value={category.id}>
+                      {category.code} - {category.name}
+                    </option>
+                  ))}
+                </select>
+                <select
+                  value={updateProduct.brandId}
+                  onChange={(event) =>
+                    setUpdateProduct((prev) => ({
+                      ...prev,
+                      brandId: event.target.value,
+                    }))
+                  }
+                  className="h-10 rounded-md border border-slate-200 px-3 text-sm"
+                >
+                  <option value="">Marca (opcional)</option>
+                  {brands.map((brand) => (
+                    <option key={brand.id} value={brand.id}>
+                      {brand.code} - {brand.name}
+                    </option>
+                  ))}
+                </select>
+                <select
+                  value={updateProduct.uomId}
+                  onChange={(event) =>
+                    setUpdateProduct((prev) => ({
+                      ...prev,
+                      uomId: event.target.value,
+                    }))
+                  }
+                  className="h-10 rounded-md border border-slate-200 px-3 text-sm"
+                >
+                  <option value="">UoM (requerida)</option>
+                  {uoms.map((uom) => (
+                    <option key={uom.id} value={uom.id}>
+                      {uom.code} - {uom.name}
+                    </option>
+                  ))}
+                </select>
+                <label className="flex items-center gap-2 text-sm text-slate-600">
+                  <input
+                    type="checkbox"
+                    checked={updateProduct.isActive}
+                    onChange={(event) =>
+                      setUpdateProduct((prev) => ({
+                        ...prev,
+                        isActive: event.target.checked,
+                      }))
+                    }
+                  />
+                  Activo
+                </label>
+                <button
+                  type="button"
+                  onClick={updateProductData}
+                  className="h-10 rounded-md border border-slate-300 text-sm font-semibold"
+                  disabled={productLoading}
+                >
+                  Guardar cambios
+                </button>
+              </div>
+            </div>
+
+            {productStatus && (
+              <p className="text-sm text-slate-600">{productStatus}</p>
+            )}
+            {products.length > 0 && (
+              <pre className="rounded-md bg-slate-100 p-3 text-xs text-slate-700">
+                {JSON.stringify(products, null, 2)}
+              </pre>
+            )}
+            {lookupResults.length > 0 && (
+              <pre className="rounded-md bg-slate-100 p-3 text-xs text-slate-700">
+                {JSON.stringify(lookupResults, null, 2)}
               </pre>
             )}
           </div>

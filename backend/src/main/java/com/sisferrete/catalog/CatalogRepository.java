@@ -243,6 +243,21 @@ public class CatalogRepository {
     return jdbc.update(sql, code, name, allowsDecimals, isActive, tenantId, uomId);
   }
 
+  public boolean existsCategory(UUID tenantId, UUID categoryId) {
+    String sql = "select 1 from categories where tenant_id = ? and id = ?";
+    return !jdbc.queryForList(sql, Integer.class, tenantId, categoryId).isEmpty();
+  }
+
+  public boolean existsBrand(UUID tenantId, UUID brandId) {
+    String sql = "select 1 from brands where tenant_id = ? and id = ?";
+    return !jdbc.queryForList(sql, Integer.class, tenantId, brandId).isEmpty();
+  }
+
+  public boolean existsUom(UUID tenantId, UUID uomId) {
+    String sql = "select 1 from units_of_measure where tenant_id = ? and id = ?";
+    return !jdbc.queryForList(sql, Integer.class, tenantId, uomId).isEmpty();
+  }
+
   public record CategoryRecord(UUID id, String code, String name, boolean isActive) {}
   public record BrandRecord(UUID id, String code, String name, boolean isActive) {}
   public record UomRecord(UUID id, String code, String name, boolean allowsDecimals, boolean isActive) {}

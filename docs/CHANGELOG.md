@@ -15,6 +15,7 @@ Formato basado en “Keep a Changelog”, adaptado a este proyecto.
 - IAM admin usable + branch access (SPR-007).
 - Catálogo base (categorías, marcas, UoM) + permiso CATALOG_MANAGE (SPR-008).
 - RFC-0002: contrato UoM (tabla + campo decimal_scale).
+- Productos base + búsqueda rápida (SPR-009).
 
 ### Changed
 - N/A
