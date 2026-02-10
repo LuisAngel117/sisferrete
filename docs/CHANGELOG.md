@@ -10,6 +10,7 @@ Formato basado en “Keep a Changelog”, adaptado a este proyecto.
 - Docs base (TANDA 2): CONVENCIONES, SEGURIDAD, DOMINIO, UX/UI, RUNBOOK, STAGE-RELEASE, templates RFC/ADR, STATUS/LOG.
 - Backend/Frontend scaffold base.
 - DB platform base + Flyway.
+- Audit base + hooks (SPR-005).
 
 ### Changed
 - N/A

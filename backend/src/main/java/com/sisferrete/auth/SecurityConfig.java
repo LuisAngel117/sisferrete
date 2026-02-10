@@ -7,6 +7,9 @@ import java.util.Collection;
 import java.util.List;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
+import jakarta.servlet.http.HttpServletResponse;
+import java.util.Map;
+import com.sisferrete.platform.audit.AuditService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
@@ -23,6 +26,7 @@ import org.springframework.security.oauth2.jwt.ImmutableSecret;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtEncoder;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
+import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.security.web.SecurityFilterChain;
 
 @Configuration
@@ -30,7 +34,7 @@ import org.springframework.security.web.SecurityFilterChain;
 public class SecurityConfig {
 
   @Bean
-  public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+  public SecurityFilterChain securityFilterChain(HttpSecurity http, AuditService auditService) throws Exception {
     http
         .csrf(csrf -> csrf.disable())
         .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
@@ -38,6 +42,7 @@ public class SecurityConfig {
             .requestMatchers("/api/auth/**", "/api/ping", "/actuator/health", "/error").permitAll()
             .anyRequest().authenticated()
         )
+        .exceptionHandling(ex -> ex.accessDeniedHandler(accessDeniedHandler(auditService)))
         .oauth2ResourceServer(oauth2 -> oauth2.jwt(jwt -> jwt.jwtAuthenticationConverter(jwtAuthenticationConverter())));
 
     return http.build();
@@ -75,6 +80,24 @@ public class SecurityConfig {
       return authorities;
     });
     return converter;
+  }
+
+  private AccessDeniedHandler accessDeniedHandler(AuditService auditService) {
+    return (request, response, ex) -> {
+      auditService.recordWithContext(
+          "AUTH_PERMISSION_DENIED",
+          "Acceso denegado",
+          null,
+          null,
+          null,
+          null,
+          Map.of(
+              "path", request.getRequestURI(),
+              "method", request.getMethod()
+          )
+      );
+      response.sendError(HttpServletResponse.SC_FORBIDDEN, "Forbidden");
+    };
   }
 
   private SecretKey secretKey(JwtProperties properties) {

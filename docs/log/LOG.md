@@ -146,4 +146,31 @@ Migrating schema "public" to version "2 - platform seed"
 Successfully applied 2 migrations to schema "public"
 BUILD SUCCESS
 ```
+---
+
+**2026-02-09 22:27:26 -05:00 (America/Guayaquil)**
+Sprint: SPR-005
+Estado resultante: READY_FOR_VALIDATION
+Resumen:
+- Auditoría base + hook central (AuditService)
+- Migración V4__audit_events_columns.sql
+- Eventos AUTH_* en login/refresh + access denied
+- Script smoke sprint5.ps1
+
+Evidencia:
+- Comandos ejecutados por el usuario:
+  - `$env:SPRING_DATASOURCE_URL="jdbc:postgresql://localhost:5432/sisferrete"`
+  - `$env:SPRING_DATASOURCE_USERNAME="postgres"`
+  - `$env:SPRING_DATASOURCE_PASSWORD="TU_PASSWORD_REAL"`
+  - `$env:SISFERRETE_ADMIN_EMAIL="admin@demo.com"`
+  - `$env:SISFERRETE_ADMIN_PASSWORD="TU_PASSWORD_REAL"`
+  - `cd backend`
+  - `./mvnw spring-boot:run`
+  - `cd ..`
+  - `pwsh -ExecutionPolicy Bypass -File .\scripts\smoke\sprint5.ps1`
+  - `psql -U postgres -d sisferrete -c "select action_code, created_at from audit_events order by created_at desc limit 10;"`
+- Output:
+```text
+PEGAR OUTPUT AQUÍ
+```
 <!-- EOF -->
