@@ -77,6 +77,10 @@ type LookupResult = {
   variantName?: string | null;
   uomId?: string | null;
   uomCode?: string | null;
+  packagingId?: string | null;
+  saleUomId?: string | null;
+  saleUomCode?: string | null;
+  baseUnitsPerSaleUnit?: number | null;
 };
 
 type ProductVariant = {
@@ -85,6 +89,18 @@ type ProductVariant = {
   name: string;
   barcode?: string | null;
   attributes?: Record<string, string>;
+  isActive: boolean;
+};
+
+type ProductPackaging = {
+  id: string;
+  productId: string;
+  variantId?: string | null;
+  saleUomId: string;
+  baseUomId: string;
+  baseUnitsPerSaleUnit: number;
+  barcode?: string | null;
+  isDefaultForSale: boolean;
   isActive: boolean;
 };
 
@@ -191,6 +207,30 @@ function App() {
     name: "",
     barcode: "",
     attributesText: "",
+    isActive: true,
+  });
+
+  const [packagingStatus, setPackagingStatus] = useState("");
+  const [packagings, setPackagings] = useState<ProductPackaging[]>([]);
+  const [packagingProductId, setPackagingProductId] = useState("");
+  const [newPackaging, setNewPackaging] = useState({
+    productId: "",
+    variantId: "",
+    saleUomId: "",
+    baseUomId: "",
+    baseUnitsPerSaleUnit: "",
+    barcode: "",
+    isDefaultForSale: false,
+    isActive: true,
+  });
+  const [updatePackaging, setUpdatePackaging] = useState({
+    packagingId: "",
+    variantId: "",
+    saleUomId: "",
+    baseUomId: "",
+    baseUnitsPerSaleUnit: "",
+    barcode: "",
+    isDefaultForSale: false,
     isActive: true,
   });
 
@@ -1020,6 +1060,17 @@ function App() {
     return Object.keys(result).length ? result : null;
   };
 
+  const parseBaseUnits = (value: string) => {
+    if (!value.trim()) {
+      return null;
+    }
+    const parsed = Number(value);
+    if (!Number.isFinite(parsed) || parsed <= 0) {
+      return null;
+    }
+    return parsed;
+  };
+
   const fetchVariants = async () => {
     setVariantStatus("");
     if (!variantProductId.trim()) {
@@ -1107,6 +1158,123 @@ function App() {
       setVariantStatus("Variante actualizada.");
     } catch (err) {
       setVariantStatus(err instanceof Error ? err.message : "Error inesperado.");
+    }
+  };
+
+  const fetchPackagings = async (productIdOverride?: string) => {
+    setPackagingStatus("");
+    const targetId = (productIdOverride ?? packagingProductId).trim();
+    if (!targetId) {
+      setPackagingStatus("Debes indicar productId.");
+      return;
+    }
+    try {
+      const res = await fetch(
+        `${API_BASE}/api/admin/products/${targetId}/packagings`,
+        {
+          headers: authHeaders,
+        }
+      );
+      if (!res.ok) {
+        throw new Error(await res.text());
+      }
+      const data: ProductPackaging[] = await res.json();
+      setPackagings(data);
+      setPackagingStatus("Presentaciones cargadas.");
+    } catch (err) {
+      setPackagingStatus(err instanceof Error ? err.message : "Error inesperado.");
+    }
+  };
+
+  const createPackaging = async () => {
+    setPackagingStatus("");
+    if (!newPackaging.productId.trim()) {
+      setPackagingStatus("Debes indicar productId.");
+      return;
+    }
+    if (!newPackaging.saleUomId.trim() || !newPackaging.baseUomId.trim()) {
+      setPackagingStatus("Debes seleccionar UoM de venta y base.");
+      return;
+    }
+    const baseUnits = parseBaseUnits(newPackaging.baseUnitsPerSaleUnit);
+    if (baseUnits === null) {
+      setPackagingStatus("Factor inválido.");
+      return;
+    }
+    try {
+      const res = await fetch(
+        `${API_BASE}/api/admin/products/${newPackaging.productId}/packagings`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            ...authHeaders,
+          },
+          body: JSON.stringify({
+            variantId: newPackaging.variantId.trim() || null,
+            saleUomId: newPackaging.saleUomId,
+            baseUomId: newPackaging.baseUomId,
+            baseUnitsPerSaleUnit: baseUnits,
+            barcode: newPackaging.barcode.trim() || null,
+            isDefaultForSale: newPackaging.isDefaultForSale,
+            isActive: newPackaging.isActive,
+          }),
+        }
+      );
+      if (!res.ok) {
+        throw new Error(await res.text());
+      }
+      await fetchPackagings(newPackaging.productId);
+      setPackagingStatus("Presentación creada.");
+    } catch (err) {
+      setPackagingStatus(err instanceof Error ? err.message : "Error inesperado.");
+    }
+  };
+
+  const updatePackagingData = async () => {
+    setPackagingStatus("");
+    if (!updatePackaging.packagingId.trim()) {
+      setPackagingStatus("Debes indicar packagingId.");
+      return;
+    }
+    if (!updatePackaging.saleUomId.trim() || !updatePackaging.baseUomId.trim()) {
+      setPackagingStatus("Debes seleccionar UoM de venta y base.");
+      return;
+    }
+    const baseUnits = parseBaseUnits(updatePackaging.baseUnitsPerSaleUnit);
+    if (baseUnits === null) {
+      setPackagingStatus("Factor inválido.");
+      return;
+    }
+    try {
+      const res = await fetch(
+        `${API_BASE}/api/admin/packagings/${updatePackaging.packagingId}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            ...authHeaders,
+          },
+          body: JSON.stringify({
+            variantId: updatePackaging.variantId.trim() || null,
+            saleUomId: updatePackaging.saleUomId,
+            baseUomId: updatePackaging.baseUomId,
+            baseUnitsPerSaleUnit: baseUnits,
+            barcode: updatePackaging.barcode.trim() || null,
+            isDefaultForSale: updatePackaging.isDefaultForSale,
+            isActive: updatePackaging.isActive,
+          }),
+        }
+      );
+      if (!res.ok) {
+        throw new Error(await res.text());
+      }
+      if (packagingProductId.trim()) {
+        await fetchPackagings();
+      }
+      setPackagingStatus("Presentación actualizada.");
+    } catch (err) {
+      setPackagingStatus(err instanceof Error ? err.message : "Error inesperado.");
     }
   };
 
@@ -2488,6 +2656,279 @@ function App() {
             {variants.length > 0 && (
               <pre className="rounded-md bg-slate-100 p-3 text-xs text-slate-700">
                 {JSON.stringify(variants, null, 2)}
+              </pre>
+            )}
+          </div>
+        </section>
+
+        <section className="rounded-xl border bg-white p-6 shadow-sm">
+          <h2 className="text-base font-semibold">Presentaciones</h2>
+          <p className="mt-1 text-sm text-slate-500">
+            Empaques por producto/variante con factor hacia la unidad base.
+          </p>
+
+          <div className="mt-4 grid gap-4">
+            <div className="flex flex-wrap gap-3">
+              <input
+                value={packagingProductId}
+                onChange={(event) => setPackagingProductId(event.target.value)}
+                placeholder="productId para listar presentaciones"
+                className="h-10 flex-1 rounded-md border border-slate-200 px-3 text-sm"
+              />
+              <button
+                type="button"
+                onClick={() => {
+                  fetchUoms();
+                  fetchPackagings();
+                }}
+                className="h-10 rounded-md border border-slate-300 px-4 text-sm font-semibold"
+              >
+                Cargar UoM + ver
+              </button>
+            </div>
+
+            <div className="grid gap-6 lg:grid-cols-2">
+              <div className="grid gap-3">
+                <h3 className="text-sm font-semibold text-slate-700">
+                  Crear presentación
+                </h3>
+                <input
+                  value={newPackaging.productId}
+                  onChange={(event) =>
+                    setNewPackaging((prev) => ({
+                      ...prev,
+                      productId: event.target.value,
+                    }))
+                  }
+                  placeholder="productId"
+                  className="h-10 rounded-md border border-slate-200 px-3 text-sm"
+                />
+                <input
+                  value={newPackaging.variantId}
+                  onChange={(event) =>
+                    setNewPackaging((prev) => ({
+                      ...prev,
+                      variantId: event.target.value,
+                    }))
+                  }
+                  placeholder="variantId (opcional)"
+                  className="h-10 rounded-md border border-slate-200 px-3 text-sm"
+                />
+                <select
+                  value={newPackaging.saleUomId}
+                  onChange={(event) =>
+                    setNewPackaging((prev) => ({
+                      ...prev,
+                      saleUomId: event.target.value,
+                    }))
+                  }
+                  className="h-10 rounded-md border border-slate-200 px-3 text-sm"
+                >
+                  <option value="">UoM venta (requerida)</option>
+                  {uoms.map((uom) => (
+                    <option key={uom.id} value={uom.id}>
+                      {uom.code} - {uom.name}
+                    </option>
+                  ))}
+                </select>
+                <select
+                  value={newPackaging.baseUomId}
+                  onChange={(event) =>
+                    setNewPackaging((prev) => ({
+                      ...prev,
+                      baseUomId: event.target.value,
+                    }))
+                  }
+                  className="h-10 rounded-md border border-slate-200 px-3 text-sm"
+                >
+                  <option value="">UoM base (requerida)</option>
+                  {uoms.map((uom) => (
+                    <option key={uom.id} value={uom.id}>
+                      {uom.code} - {uom.name}
+                    </option>
+                  ))}
+                </select>
+                <input
+                  value={newPackaging.baseUnitsPerSaleUnit}
+                  onChange={(event) =>
+                    setNewPackaging((prev) => ({
+                      ...prev,
+                      baseUnitsPerSaleUnit: event.target.value,
+                    }))
+                  }
+                  placeholder="Factor (ej: 100)"
+                  className="h-10 rounded-md border border-slate-200 px-3 text-sm"
+                />
+                <input
+                  value={newPackaging.barcode}
+                  onChange={(event) =>
+                    setNewPackaging((prev) => ({
+                      ...prev,
+                      barcode: event.target.value,
+                    }))
+                  }
+                  placeholder="Barcode (opcional)"
+                  className="h-10 rounded-md border border-slate-200 px-3 text-sm"
+                />
+                <label className="flex items-center gap-2 text-sm text-slate-600">
+                  <input
+                    type="checkbox"
+                    checked={newPackaging.isDefaultForSale}
+                    onChange={(event) =>
+                      setNewPackaging((prev) => ({
+                        ...prev,
+                        isDefaultForSale: event.target.checked,
+                      }))
+                    }
+                  />
+                  Default venta
+                </label>
+                <label className="flex items-center gap-2 text-sm text-slate-600">
+                  <input
+                    type="checkbox"
+                    checked={newPackaging.isActive}
+                    onChange={(event) =>
+                      setNewPackaging((prev) => ({
+                        ...prev,
+                        isActive: event.target.checked,
+                      }))
+                    }
+                  />
+                  Activo
+                </label>
+                <button
+                  type="button"
+                  onClick={createPackaging}
+                  className="h-10 rounded-md bg-slate-900 text-sm font-semibold text-white"
+                >
+                  Crear presentación
+                </button>
+              </div>
+
+              <div className="grid gap-3">
+                <h3 className="text-sm font-semibold text-slate-700">
+                  Actualizar presentación
+                </h3>
+                <input
+                  value={updatePackaging.packagingId}
+                  onChange={(event) =>
+                    setUpdatePackaging((prev) => ({
+                      ...prev,
+                      packagingId: event.target.value,
+                    }))
+                  }
+                  placeholder="packagingId"
+                  className="h-10 rounded-md border border-slate-200 px-3 text-sm"
+                />
+                <input
+                  value={updatePackaging.variantId}
+                  onChange={(event) =>
+                    setUpdatePackaging((prev) => ({
+                      ...prev,
+                      variantId: event.target.value,
+                    }))
+                  }
+                  placeholder="variantId (opcional)"
+                  className="h-10 rounded-md border border-slate-200 px-3 text-sm"
+                />
+                <select
+                  value={updatePackaging.saleUomId}
+                  onChange={(event) =>
+                    setUpdatePackaging((prev) => ({
+                      ...prev,
+                      saleUomId: event.target.value,
+                    }))
+                  }
+                  className="h-10 rounded-md border border-slate-200 px-3 text-sm"
+                >
+                  <option value="">UoM venta (requerida)</option>
+                  {uoms.map((uom) => (
+                    <option key={uom.id} value={uom.id}>
+                      {uom.code} - {uom.name}
+                    </option>
+                  ))}
+                </select>
+                <select
+                  value={updatePackaging.baseUomId}
+                  onChange={(event) =>
+                    setUpdatePackaging((prev) => ({
+                      ...prev,
+                      baseUomId: event.target.value,
+                    }))
+                  }
+                  className="h-10 rounded-md border border-slate-200 px-3 text-sm"
+                >
+                  <option value="">UoM base (requerida)</option>
+                  {uoms.map((uom) => (
+                    <option key={uom.id} value={uom.id}>
+                      {uom.code} - {uom.name}
+                    </option>
+                  ))}
+                </select>
+                <input
+                  value={updatePackaging.baseUnitsPerSaleUnit}
+                  onChange={(event) =>
+                    setUpdatePackaging((prev) => ({
+                      ...prev,
+                      baseUnitsPerSaleUnit: event.target.value,
+                    }))
+                  }
+                  placeholder="Factor (ej: 100)"
+                  className="h-10 rounded-md border border-slate-200 px-3 text-sm"
+                />
+                <input
+                  value={updatePackaging.barcode}
+                  onChange={(event) =>
+                    setUpdatePackaging((prev) => ({
+                      ...prev,
+                      barcode: event.target.value,
+                    }))
+                  }
+                  placeholder="Barcode (opcional)"
+                  className="h-10 rounded-md border border-slate-200 px-3 text-sm"
+                />
+                <label className="flex items-center gap-2 text-sm text-slate-600">
+                  <input
+                    type="checkbox"
+                    checked={updatePackaging.isDefaultForSale}
+                    onChange={(event) =>
+                      setUpdatePackaging((prev) => ({
+                        ...prev,
+                        isDefaultForSale: event.target.checked,
+                      }))
+                    }
+                  />
+                  Default venta
+                </label>
+                <label className="flex items-center gap-2 text-sm text-slate-600">
+                  <input
+                    type="checkbox"
+                    checked={updatePackaging.isActive}
+                    onChange={(event) =>
+                      setUpdatePackaging((prev) => ({
+                        ...prev,
+                        isActive: event.target.checked,
+                      }))
+                    }
+                  />
+                  Activo
+                </label>
+                <button
+                  type="button"
+                  onClick={updatePackagingData}
+                  className="h-10 rounded-md border border-slate-300 text-sm font-semibold"
+                >
+                  Guardar cambios
+                </button>
+              </div>
+            </div>
+
+            {packagingStatus && (
+              <p className="text-sm text-slate-600">{packagingStatus}</p>
+            )}
+            {packagings.length > 0 && (
+              <pre className="rounded-md bg-slate-100 p-3 text-xs text-slate-700">
+                {JSON.stringify(packagings, null, 2)}
               </pre>
             )}
           </div>

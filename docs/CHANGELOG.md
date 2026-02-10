@@ -17,6 +17,8 @@ Formato basado en “Keep a Changelog”, adaptado a este proyecto.
 - RFC-0002: contrato UoM (tabla + campo decimal_scale).
 - Productos base + búsqueda rápida (SPR-009).
 - Variantes y atributos + barcode variante (SPR-010).
+- Presentaciones/empaques + conversiones + barcode por empaque (SPR-011).
+- RFC-0003: contrato de presentaciones/empaques.
 
 ### Changed
 - N/A

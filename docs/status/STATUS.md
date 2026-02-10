@@ -30,6 +30,7 @@
 | SPR-008 | Catálogo base: categorías, marcas, UoM (decimales por unidad) | 1 | READY_FOR_VALIDATION | LOG 2026-02-10 | RFC-0002 | commit: TBD; archivos: V7__catalog_base.sql, Catalog*, AdminCatalogController, sprint8.ps1, App.tsx |
 | SPR-009 | Productos base (SKU/barcode), búsqueda rápida, estado activo | 1 | READY_FOR_VALIDATION | LOG 2026-02-10 | N/A | archivos: V8__products_base.sql, Product*, AdminProductsController, sprint9.ps1, App.tsx |
 | SPR-010 | Variantes/atributos + barcode por variante | 1 | READY_FOR_VALIDATION | LOG 2026-02-10 | N/A | archivos: V9__product_variants.sql, ProductVariant*, AdminProductVariantsController, sprint10.ps1, App.tsx |
+| SPR-011 | Empaques/conversiones (unidad vs caja/paquete) | 1 | READY_FOR_VALIDATION | LOG 2026-02-10 | RFC-0003 | commit: TBD; archivos: V10__product_packagings.sql, PackagingService, AdminPackagingController, PackagingRepository, ProductService, sprint11.ps1, App.tsx |
 | TBD | TBD | TBD | TBD | TBD | TBD | Se completa cuando exista SPR-MASTER |
 
 <!-- EOF -->

@@ -19,15 +19,18 @@ public class ProductService {
   private final ProductRepository repository;
   private final CatalogRepository catalogRepository;
   private final ProductVariantRepository variantRepository;
+  private final PackagingRepository packagingRepository;
 
   public ProductService(
       ProductRepository repository,
       CatalogRepository catalogRepository,
-      ProductVariantRepository variantRepository
+      ProductVariantRepository variantRepository,
+      PackagingRepository packagingRepository
   ) {
     this.repository = repository;
     this.catalogRepository = catalogRepository;
     this.variantRepository = variantRepository;
+    this.packagingRepository = packagingRepository;
   }
 
   public List<ProductResponse> listProducts(UUID tenantId, String query, Integer limit) {
@@ -87,9 +90,33 @@ public class ProductService {
     int safeLimit = normalizeLimit(limit, DEFAULT_LOOKUP_LIMIT, 50);
     Map<String, LookupResponse> ordered = new LinkedHashMap<>();
 
+    for (PackagingRepository.PackagingLookupRecord record :
+        packagingRepository.lookupByBarcode(tenantId, normalized, safeLimit)) {
+      String key = key(record.productId(), record.variantId(), record.packagingId());
+      ordered.putIfAbsent(
+          key,
+          new LookupResponse(
+              "PACKAGING_BARCODE",
+              record.productId(),
+              record.productName(),
+              record.variantId(),
+              record.variantName(),
+              record.baseUomId(),
+              record.baseUomCode(),
+              record.packagingId(),
+              record.saleUomId(),
+              record.saleUomCode(),
+              record.baseUnitsPerSaleUnit()
+          )
+      );
+      if (ordered.size() >= safeLimit) {
+        break;
+      }
+    }
+
     for (ProductVariantRepository.VariantLookupRecord record :
         variantRepository.lookupByBarcode(tenantId, normalized, safeLimit)) {
-      String key = key(record.productId(), record.variantId());
+      String key = key(record.productId(), record.variantId(), null);
       ordered.putIfAbsent(
           key,
           new LookupResponse(
@@ -99,7 +126,11 @@ public class ProductService {
               record.variantId(),
               record.variantName(),
               record.uomId(),
-              record.uomCode()
+              record.uomCode(),
+              null,
+              null,
+              null,
+              null
           )
       );
       if (ordered.size() >= safeLimit) {
@@ -110,7 +141,7 @@ public class ProductService {
     if (ordered.size() < safeLimit) {
       for (ProductRepository.ProductLookupRecord record :
           repository.lookupProductByBarcode(tenantId, normalized, safeLimit)) {
-        String key = key(record.productId(), null);
+        String key = key(record.productId(), null, null);
         ordered.putIfAbsent(
             key,
             new LookupResponse(
@@ -120,7 +151,11 @@ public class ProductService {
                 null,
                 null,
                 record.uomId(),
-                record.uomCode()
+                record.uomCode(),
+                null,
+                null,
+                null,
+                null
             )
         );
         if (ordered.size() >= safeLimit) {
@@ -132,7 +167,7 @@ public class ProductService {
     if (ordered.size() < safeLimit) {
       for (ProductRepository.ProductLookupRecord record :
           repository.lookupProductBySku(tenantId, normalized, safeLimit)) {
-        String key = key(record.productId(), null);
+        String key = key(record.productId(), null, null);
         ordered.putIfAbsent(
             key,
             new LookupResponse(
@@ -142,7 +177,11 @@ public class ProductService {
                 null,
                 null,
                 record.uomId(),
-                record.uomCode()
+                record.uomCode(),
+                null,
+                null,
+                null,
+                null
             )
         );
         if (ordered.size() >= safeLimit) {
@@ -155,7 +194,7 @@ public class ProductService {
       int remaining = safeLimit - ordered.size();
       for (ProductRepository.ProductLookupRecord record :
           repository.lookupProductByName(tenantId, normalized, remaining)) {
-        String key = key(record.productId(), null);
+        String key = key(record.productId(), null, null);
         ordered.putIfAbsent(
             key,
             new LookupResponse(
@@ -165,7 +204,11 @@ public class ProductService {
                 null,
                 null,
                 record.uomId(),
-                record.uomCode()
+                record.uomCode(),
+                null,
+                null,
+                null,
+                null
             )
         );
         if (ordered.size() >= safeLimit) {
@@ -262,7 +305,10 @@ public class ProductService {
     );
   }
 
-  private String key(UUID productId, UUID variantId) {
+  private String key(UUID productId, UUID variantId, UUID packagingId) {
+    if (packagingId != null) {
+      return "PACK:" + packagingId;
+    }
     return productId + ":" + (variantId == null ? "BASE" : variantId.toString());
   }
 
@@ -304,6 +350,10 @@ public class ProductService {
       UUID variantId,
       String variantName,
       UUID uomId,
-      String uomCode
+      String uomCode,
+      UUID packagingId,
+      UUID saleUomId,
+      String saleUomCode,
+      java.math.BigDecimal baseUnitsPerSaleUnit
   ) {}
 }

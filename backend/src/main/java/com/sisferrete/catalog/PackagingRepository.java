@@ -201,11 +201,14 @@ public class PackagingRepository {
                pv.name as variant_name,
                pp.sale_uom_id as sale_uom_id,
                su.code as sale_uom_code,
+               pp.base_uom_id as base_uom_id,
+               bu.code as base_uom_code,
                pp.base_units_per_sale_unit as base_units_per_sale_unit
         from product_packagings pp
         join products p on p.id = pp.product_id
         left join product_variants pv on pv.id = pp.variant_id
         join units_of_measure su on su.id = pp.sale_uom_id
+        join units_of_measure bu on bu.id = pp.base_uom_id
         where pp.tenant_id = ? and pp.barcode = ?
         order by pp.id
         limit ?
@@ -219,6 +222,8 @@ public class PackagingRepository {
             rs.getString("variant_name"),
             rs.getObject("sale_uom_id", UUID.class),
             rs.getString("sale_uom_code"),
+            rs.getObject("base_uom_id", UUID.class),
+            rs.getString("base_uom_code"),
             rs.getBigDecimal("base_units_per_sale_unit")
         ), tenantId, barcode, limit);
   }
@@ -243,6 +248,8 @@ public class PackagingRepository {
       String variantName,
       UUID saleUomId,
       String saleUomCode,
+      UUID baseUomId,
+      String baseUomCode,
       BigDecimal baseUnitsPerSaleUnit
   ) {}
 }
