@@ -14,7 +14,7 @@ Formato basado en “Keep a Changelog”, adaptado a este proyecto.
 - N/A
 
 ### Fixed
-- N/A
+- npm install dependency conflict in frontend (ESLint/TypeScript ESLint).
 
 ---
 

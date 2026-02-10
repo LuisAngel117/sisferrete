@@ -22,7 +22,7 @@
 
 | Sprint | Título | Stage | Estado | Evidencia (LOG) | RFC/ADR Relacionados | Notas |
 |------:|--------|:-----:|--------|-----------------|----------------------|------|
-| SPR-002 | Scaffolding monorepo (backend+frontend) + tooling base | 1 | READY_FOR_VALIDATION | LOG 2026-02-10 | N/A | Scaffold base |
+| SPR-002 | Scaffolding monorepo (backend+frontend) + tooling base | 1 | READY_FOR_VALIDATION | LOG 2026-02-10 | N/A | Scaffold base + npm install fix |
 | TBD | TBD | TBD | TBD | TBD | TBD | Se completa cuando exista SPR-MASTER |
 
 <!-- EOF -->
