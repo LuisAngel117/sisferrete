@@ -284,4 +284,29 @@ Evidencia:
 ```text
 PEGAR OUTPUT AQUÍ
 ```
+---
+
+**2026-02-10 11:10:00 -05:00 (America/Guayaquil)**
+Sprint: SPR-010
+Estado resultante: READY_FOR_VALIDATION
+Resumen:
+- Variantes con atributos JSON y barcode por variante
+- Lookup incluye match por barcode de variante
+- UI mínima + smoke script
+
+Evidencia:
+- Comandos ejecutados por el usuario:
+  - `$env:SPRING_DATASOURCE_URL="jdbc:postgresql://localhost:5432/sisferrete"`
+  - `$env:SPRING_DATASOURCE_USERNAME="postgres"`
+  - `$env:SPRING_DATASOURCE_PASSWORD="TU_PASSWORD_REAL"`
+  - `$env:SISFERRETE_ADMIN_EMAIL="admin@demo.com"`
+  - `$env:SISFERRETE_ADMIN_PASSWORD="TU_PASSWORD_REAL"`
+  - `cd backend`
+  - `./mvnw spring-boot:run`
+  - `cd ..`
+  - `pwsh -ExecutionPolicy Bypass -File .\scripts\smoke\sprint10.ps1`
+- Output:
+```text
+PEGAR OUTPUT AQUÍ
+```
 <!-- EOF -->

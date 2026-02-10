@@ -12,61 +12,43 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
 @RestController
-@RequestMapping("/api/admin/products")
+@RequestMapping("/api/admin")
 @PreAuthorize("hasAuthority('PERM_CATALOG_MANAGE')")
-public class AdminProductsController {
-  private final ProductService service;
+public class AdminProductVariantsController {
+  private final ProductVariantService service;
 
-  public AdminProductsController(ProductService service) {
+  public AdminProductVariantsController(ProductVariantService service) {
     this.service = service;
   }
 
-  @GetMapping
-  public List<ProductService.ProductResponse> listProducts(
-      @RequestParam(name = "query", required = false) String query,
-      @RequestParam(name = "limit", required = false) Integer limit,
+  @GetMapping("/products/{productId}/variants")
+  public List<ProductVariantService.VariantResponse> listVariants(
+      @PathVariable UUID productId,
       JwtAuthenticationToken authentication
   ) {
-    return service.listProducts(tenantId(authentication), query, limit);
+    return service.listVariants(tenantId(authentication), productId);
   }
 
-  @GetMapping("/{id}")
-  public ProductService.ProductResponse getProduct(
-      @PathVariable UUID id,
+  @PostMapping("/products/{productId}/variants")
+  public ProductVariantService.VariantResponse createVariant(
+      @PathVariable UUID productId,
+      @Valid @RequestBody ProductVariantService.VariantRequest request,
       JwtAuthenticationToken authentication
   ) {
-    return service.getProduct(tenantId(authentication), id);
+    return service.createVariant(tenantId(authentication), productId, request);
   }
 
-  @PostMapping
-  public ProductService.ProductResponse createProduct(
-      @Valid @RequestBody ProductService.ProductRequest request,
+  @PutMapping("/variants/{variantId}")
+  public ProductVariantService.VariantResponse updateVariant(
+      @PathVariable UUID variantId,
+      @Valid @RequestBody ProductVariantService.VariantRequest request,
       JwtAuthenticationToken authentication
   ) {
-    return service.createProduct(tenantId(authentication), request);
-  }
-
-  @PutMapping("/{id}")
-  public ProductService.ProductResponse updateProduct(
-      @PathVariable UUID id,
-      @Valid @RequestBody ProductService.ProductRequest request,
-      JwtAuthenticationToken authentication
-  ) {
-    return service.updateProduct(tenantId(authentication), id, request);
-  }
-
-  @GetMapping("/lookup")
-  public List<ProductService.LookupResponse> lookupProducts(
-      @RequestParam(name = "term") String term,
-      @RequestParam(name = "limit", required = false) Integer limit,
-      JwtAuthenticationToken authentication
-  ) {
-    return service.lookupProducts(tenantId(authentication), term, limit);
+    return service.updateVariant(tenantId(authentication), variantId, request);
   }
 
   private UUID tenantId(JwtAuthenticationToken authentication) {

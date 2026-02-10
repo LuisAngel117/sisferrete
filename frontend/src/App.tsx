@@ -69,6 +69,25 @@ type Product = {
   isActive: boolean;
 };
 
+type LookupResult = {
+  matchType: string;
+  productId: string;
+  productName: string;
+  variantId?: string | null;
+  variantName?: string | null;
+  uomId?: string | null;
+  uomCode?: string | null;
+};
+
+type ProductVariant = {
+  id: string;
+  productId: string;
+  name: string;
+  barcode?: string | null;
+  attributes?: Record<string, string>;
+  isActive: boolean;
+};
+
 const API_BASE = "http://localhost:8080";
 
 function App() {
@@ -134,7 +153,7 @@ function App() {
   const [productQuery, setProductQuery] = useState("");
   const [lookupTerm, setLookupTerm] = useState("");
   const [products, setProducts] = useState<Product[]>([]);
-  const [lookupResults, setLookupResults] = useState<Product[]>([]);
+  const [lookupResults, setLookupResults] = useState<LookupResult[]>([]);
 
   const [newProduct, setNewProduct] = useState({
     name: "",
@@ -154,6 +173,24 @@ function App() {
     categoryId: "",
     brandId: "",
     uomId: "",
+    isActive: true,
+  });
+
+  const [variantStatus, setVariantStatus] = useState("");
+  const [variants, setVariants] = useState<ProductVariant[]>([]);
+  const [variantProductId, setVariantProductId] = useState("");
+  const [newVariant, setNewVariant] = useState({
+    productId: "",
+    name: "",
+    barcode: "",
+    attributesText: "",
+    isActive: true,
+  });
+  const [updateVariant, setUpdateVariant] = useState({
+    variantId: "",
+    name: "",
+    barcode: "",
+    attributesText: "",
     isActive: true,
   });
 
@@ -880,7 +917,7 @@ function App() {
       if (!res.ok) {
         throw new Error(await res.text());
       }
-      const data: Product[] = await res.json();
+      const data: LookupResult[] = await res.json();
       setLookupResults(data);
       setProductStatus("Lookup completado.");
     } catch (err) {
@@ -958,6 +995,118 @@ function App() {
       setProductStatus(err instanceof Error ? err.message : "Error inesperado.");
     } finally {
       setProductLoading(false);
+    }
+  };
+
+  const parseAttributes = (text: string) => {
+    if (!text.trim()) {
+      return null;
+    }
+    const result: Record<string, string> = {};
+    text.split(",").forEach((raw) => {
+      const pair = raw.trim();
+      if (!pair) {
+        return;
+      }
+      const [key, ...rest] = pair.split("=");
+      if (!key || rest.length === 0) {
+        return;
+      }
+      const value = rest.join("=").trim();
+      if (value) {
+        result[key.trim()] = value;
+      }
+    });
+    return Object.keys(result).length ? result : null;
+  };
+
+  const fetchVariants = async () => {
+    setVariantStatus("");
+    if (!variantProductId.trim()) {
+      setVariantStatus("Debes indicar productId.");
+      return;
+    }
+    try {
+      const res = await fetch(
+        `${API_BASE}/api/admin/products/${variantProductId}/variants`,
+        {
+          headers: authHeaders,
+        }
+      );
+      if (!res.ok) {
+        throw new Error(await res.text());
+      }
+      const data: ProductVariant[] = await res.json();
+      setVariants(data);
+      setVariantStatus("Variantes cargadas.");
+    } catch (err) {
+      setVariantStatus(err instanceof Error ? err.message : "Error inesperado.");
+    }
+  };
+
+  const createVariant = async () => {
+    setVariantStatus("");
+    if (!newVariant.productId.trim()) {
+      setVariantStatus("Debes indicar productId.");
+      return;
+    }
+    try {
+      const res = await fetch(
+        `${API_BASE}/api/admin/products/${newVariant.productId}/variants`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            ...authHeaders,
+          },
+          body: JSON.stringify({
+            name: newVariant.name,
+            barcode: newVariant.barcode,
+            attributes: parseAttributes(newVariant.attributesText),
+            isActive: newVariant.isActive,
+          }),
+        }
+      );
+      if (!res.ok) {
+        throw new Error(await res.text());
+      }
+      await fetchVariants();
+      setVariantStatus("Variante creada.");
+    } catch (err) {
+      setVariantStatus(err instanceof Error ? err.message : "Error inesperado.");
+    }
+  };
+
+  const updateVariantData = async () => {
+    setVariantStatus("");
+    if (!updateVariant.variantId.trim()) {
+      setVariantStatus("Debes indicar variantId.");
+      return;
+    }
+    try {
+      const res = await fetch(
+        `${API_BASE}/api/admin/variants/${updateVariant.variantId}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            ...authHeaders,
+          },
+          body: JSON.stringify({
+            name: updateVariant.name,
+            barcode: updateVariant.barcode,
+            attributes: parseAttributes(updateVariant.attributesText),
+            isActive: updateVariant.isActive,
+          }),
+        }
+      );
+      if (!res.ok) {
+        throw new Error(await res.text());
+      }
+      await fetchVariants();
+      setVariantStatus("Variante actualizada.");
+    } catch (err) {
+      setVariantStatus(err instanceof Error ? err.message : "Error inesperado.");
     }
   };
 
@@ -2163,6 +2312,182 @@ function App() {
             {lookupResults.length > 0 && (
               <pre className="rounded-md bg-slate-100 p-3 text-xs text-slate-700">
                 {JSON.stringify(lookupResults, null, 2)}
+              </pre>
+            )}
+          </div>
+        </section>
+
+        <section className="rounded-xl border bg-white p-6 shadow-sm">
+          <h2 className="text-base font-semibold">Variantes</h2>
+          <p className="mt-1 text-sm text-slate-500">
+            Crear y editar variantes por producto (atributos key=value).
+          </p>
+
+          <div className="mt-4 grid gap-4">
+            <div className="flex flex-wrap gap-3">
+              <input
+                value={variantProductId}
+                onChange={(event) => setVariantProductId(event.target.value)}
+                placeholder="productId para listar variantes"
+                className="h-10 flex-1 rounded-md border border-slate-200 px-3 text-sm"
+              />
+              <button
+                type="button"
+                onClick={fetchVariants}
+                className="h-10 rounded-md border border-slate-300 px-4 text-sm font-semibold"
+              >
+                Ver variantes
+              </button>
+            </div>
+
+            <div className="grid gap-6 lg:grid-cols-2">
+              <div className="grid gap-3">
+                <h3 className="text-sm font-semibold text-slate-700">
+                  Crear variante
+                </h3>
+                <input
+                  value={newVariant.productId}
+                  onChange={(event) =>
+                    setNewVariant((prev) => ({
+                      ...prev,
+                      productId: event.target.value,
+                    }))
+                  }
+                  placeholder="productId"
+                  className="h-10 rounded-md border border-slate-200 px-3 text-sm"
+                />
+                <input
+                  value={newVariant.name}
+                  onChange={(event) =>
+                    setNewVariant((prev) => ({
+                      ...prev,
+                      name: event.target.value,
+                    }))
+                  }
+                  placeholder="Nombre variante"
+                  className="h-10 rounded-md border border-slate-200 px-3 text-sm"
+                />
+                <input
+                  value={newVariant.barcode}
+                  onChange={(event) =>
+                    setNewVariant((prev) => ({
+                      ...prev,
+                      barcode: event.target.value,
+                    }))
+                  }
+                  placeholder="Barcode (opcional)"
+                  className="h-10 rounded-md border border-slate-200 px-3 text-sm"
+                />
+                <input
+                  value={newVariant.attributesText}
+                  onChange={(event) =>
+                    setNewVariant((prev) => ({
+                      ...prev,
+                      attributesText: event.target.value,
+                    }))
+                  }
+                  placeholder="color=rojo, voltaje=110v"
+                  className="h-10 rounded-md border border-slate-200 px-3 text-sm"
+                />
+                <label className="flex items-center gap-2 text-sm text-slate-600">
+                  <input
+                    type="checkbox"
+                    checked={newVariant.isActive}
+                    onChange={(event) =>
+                      setNewVariant((prev) => ({
+                        ...prev,
+                        isActive: event.target.checked,
+                      }))
+                    }
+                  />
+                  Activo
+                </label>
+                <button
+                  type="button"
+                  onClick={createVariant}
+                  className="h-10 rounded-md bg-slate-900 text-sm font-semibold text-white"
+                >
+                  Crear variante
+                </button>
+              </div>
+
+              <div className="grid gap-3">
+                <h3 className="text-sm font-semibold text-slate-700">
+                  Actualizar variante
+                </h3>
+                <input
+                  value={updateVariant.variantId}
+                  onChange={(event) =>
+                    setUpdateVariant((prev) => ({
+                      ...prev,
+                      variantId: event.target.value,
+                    }))
+                  }
+                  placeholder="variantId"
+                  className="h-10 rounded-md border border-slate-200 px-3 text-sm"
+                />
+                <input
+                  value={updateVariant.name}
+                  onChange={(event) =>
+                    setUpdateVariant((prev) => ({
+                      ...prev,
+                      name: event.target.value,
+                    }))
+                  }
+                  placeholder="Nombre variante"
+                  className="h-10 rounded-md border border-slate-200 px-3 text-sm"
+                />
+                <input
+                  value={updateVariant.barcode}
+                  onChange={(event) =>
+                    setUpdateVariant((prev) => ({
+                      ...prev,
+                      barcode: event.target.value,
+                    }))
+                  }
+                  placeholder="Barcode (opcional)"
+                  className="h-10 rounded-md border border-slate-200 px-3 text-sm"
+                />
+                <input
+                  value={updateVariant.attributesText}
+                  onChange={(event) =>
+                    setUpdateVariant((prev) => ({
+                      ...prev,
+                      attributesText: event.target.value,
+                    }))
+                  }
+                  placeholder="color=rojo, voltaje=110v"
+                  className="h-10 rounded-md border border-slate-200 px-3 text-sm"
+                />
+                <label className="flex items-center gap-2 text-sm text-slate-600">
+                  <input
+                    type="checkbox"
+                    checked={updateVariant.isActive}
+                    onChange={(event) =>
+                      setUpdateVariant((prev) => ({
+                        ...prev,
+                        isActive: event.target.checked,
+                      }))
+                    }
+                  />
+                  Activo
+                </label>
+                <button
+                  type="button"
+                  onClick={updateVariantData}
+                  className="h-10 rounded-md border border-slate-300 text-sm font-semibold"
+                >
+                  Guardar cambios
+                </button>
+              </div>
+            </div>
+
+            {variantStatus && (
+              <p className="text-sm text-slate-600">{variantStatus}</p>
+            )}
+            {variants.length > 0 && (
+              <pre className="rounded-md bg-slate-100 p-3 text-xs text-slate-700">
+                {JSON.stringify(variants, null, 2)}
               </pre>
             )}
           </div>

@@ -16,6 +16,7 @@ Formato basado en “Keep a Changelog”, adaptado a este proyecto.
 - Catálogo base (categorías, marcas, UoM) + permiso CATALOG_MANAGE (SPR-008).
 - RFC-0002: contrato UoM (tabla + campo decimal_scale).
 - Productos base + búsqueda rápida (SPR-009).
+- Variantes y atributos + barcode variante (SPR-010).
 
 ### Changed
 - N/A
