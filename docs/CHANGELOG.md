@@ -12,6 +12,7 @@ Formato basado en “Keep a Changelog”, adaptado a este proyecto.
 - DB platform base + Flyway.
 - Audit base + hooks (SPR-005).
 - Tenant config IVA protegido (SPR-006).
+- IAM admin usable + branch access (SPR-007).
 
 ### Changed
 - N/A

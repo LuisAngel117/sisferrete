@@ -202,4 +202,33 @@ Evidencia:
 ```text
 PEGAR OUTPUT AQUÍ
 ```
+---
+
+**2026-02-09 22:46:50 -05:00 (America/Guayaquil)**
+Sprint: SPR-007
+Estado resultante: READY_FOR_VALIDATION
+Resumen:
+- IAM admin (usuarios/roles/permisos) + acceso sucursales
+- Endpoints /api/admin/* protegidos con IAM_MANAGE
+- Auditoría IAM_* en operaciones admin
+- Script smoke sprint7.ps1
+
+Evidencia:
+- Comandos ejecutados por el usuario:
+  - `$env:SPRING_DATASOURCE_URL="jdbc:postgresql://localhost:5432/sisferrete"`
+  - `$env:SPRING_DATASOURCE_USERNAME="postgres"`
+  - `$env:SPRING_DATASOURCE_PASSWORD="TU_PASSWORD_REAL"`
+  - `$env:SISFERRETE_ADMIN_EMAIL="admin@demo.com"`
+  - `$env:SISFERRETE_ADMIN_PASSWORD="TU_PASSWORD_REAL"`
+  - `$env:SISFERRETE_CAJERO_EMAIL="cajero@demo.com"`
+  - `$env:SISFERRETE_CAJERO_PASSWORD="TU_PASSWORD_REAL"`
+  - `cd backend`
+  - `./mvnw spring-boot:run`
+  - `cd ..`
+  - `pwsh -ExecutionPolicy Bypass -File .\scripts\smoke\sprint7.ps1`
+  - `psql -U postgres -d sisferrete -c "select action_code, created_at from audit_events order by created_at desc limit 20;"`
+- Output:
+```text
+PEGAR OUTPUT AQUÍ
+```
 <!-- EOF -->

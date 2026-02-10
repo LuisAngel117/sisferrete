@@ -26,6 +26,7 @@
 | SPR-003 | DB + migraciones base (tenants/branches/users/roles/permissions) + seed demo | 1 | DONE/APROBADO | LOG 2026-02-10 | N/A | Evidencia validada: Flyway V1/V2 OK (Postgres 17.7) |
 | SPR-005 | Auditoría base (audit_events) + hook para acciones sensibles | 1 | READY_FOR_VALIDATION | LOG 2026-02-09 | N/A | commit: 26195b3; archivos: V4__audit_events_columns.sql, AuditService, AuthService, SecurityConfig, sprint5.ps1 |
 | SPR-006 | Configuración crítica (IVA) + permisos protegidos + auditoría | 1 | READY_FOR_VALIDATION | LOG 2026-02-09 | N/A | archivos: V5__tenant_config_vat_bps.sql, TenantConfig*, App.tsx |
+| SPR-007 | Gestión de usuarios/roles/permisos + acceso a sucursales | 1 | READY_FOR_VALIDATION | LOG 2026-02-09 | N/A | archivos: V6__iam_seed_and_constraints.sql, Iam*, Admin*Controller, sprint7.ps1, App.tsx |
 | TBD | TBD | TBD | TBD | TBD | TBD | Se completa cuando exista SPR-MASTER |
 
 <!-- EOF -->
