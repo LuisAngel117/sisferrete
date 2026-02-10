@@ -173,4 +173,33 @@ Evidencia:
 ```text
 PEGAR OUTPUT AQUÍ
 ```
+---
+
+**2026-02-09 22:35:14 -05:00 (America/Guayaquil)**
+Sprint: SPR-006
+Estado resultante: READY_FOR_VALIDATION
+Resumen:
+- Tenant config IVA (bps) + permisos protegidos
+- Endpoint GET/PUT admin config
+- Auditoría CONFIG_VAT_CHANGED
+- UI admin mínima (App.tsx)
+
+Evidencia:
+- Comandos ejecutados por el usuario:
+  - `$env:SPRING_DATASOURCE_URL="jdbc:postgresql://localhost:5432/sisferrete"`
+  - `$env:SPRING_DATASOURCE_USERNAME="postgres"`
+  - `$env:SPRING_DATASOURCE_PASSWORD="TU_PASSWORD_REAL"`
+  - `$env:SISFERRETE_ADMIN_EMAIL="admin@demo.com"`
+  - `$env:SISFERRETE_ADMIN_PASSWORD="TU_PASSWORD_REAL"`
+  - `cd backend`
+  - `./mvnw spring-boot:run`
+  - `curl -X POST http://localhost:8080/api/auth/login -H "Content-Type: application/json" -d "{\"email\":\"admin@demo.com\",\"password\":\"TU_PASSWORD_REAL\"}"`
+  - `curl http://localhost:8080/api/admin/tenant-config -H "Authorization: Bearer <TOKEN>"`
+  - `curl -X PUT http://localhost:8080/api/admin/tenant-config/vat -H "Content-Type: application/json" -H "Authorization: Bearer <TOKEN>" -d "{\"vatRateBps\":1500}"`
+  - `curl http://localhost:8080/api/admin/tenant-config -H "Authorization: Bearer <TOKEN>"`
+  - `psql -U postgres -d sisferrete -c "select action_code, created_at from audit_events order by created_at desc limit 10;"`
+- Output:
+```text
+PEGAR OUTPUT AQUÍ
+```
 <!-- EOF -->

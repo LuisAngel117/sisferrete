@@ -11,6 +11,7 @@ Formato basado en “Keep a Changelog”, adaptado a este proyecto.
 - Backend/Frontend scaffold base.
 - DB platform base + Flyway.
 - Audit base + hooks (SPR-005).
+- Tenant config IVA protegido (SPR-006).
 
 ### Changed
 - N/A
