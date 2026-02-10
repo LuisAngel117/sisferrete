@@ -18,3 +18,28 @@ Evidencia:
 - Output:
 ```text
 <output>
+```
+
+---
+
+**2026-02-09 20:25:03 -05:00 (America/Guayaquil)**
+Sprint: SPR-002
+Estado resultante: READY_FOR_VALIDATION
+Resumen:
+- Scaffold backend/ frontend base (sin features)
+- Script smoke y configuraciones mínimas
+
+Evidencia:
+- Comandos ejecutados por el usuario:
+  - cd backend && ./mvnw test
+  - cd backend && ./mvnw spring-boot:run
+  - curl http://localhost:8080/actuator/health
+  - curl http://localhost:8080/api/ping
+  - cd frontend && npm install
+  - cd frontend && npm run dev
+- Output:
+```text
+PENDIENTE (usuario debe ejecutar y pegar outputs)
+```
+
+<!-- EOF -->
