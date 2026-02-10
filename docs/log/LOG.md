@@ -83,5 +83,25 @@ Content    : {"ok":true} (api/ping)
 npm install: added 256 packages; 2 moderate vulnerabilities
 VITE v5.4.21 ready in 1882 ms (http://localhost:5173/)
 ```
+---
+
+**2026-02-09 20:55:39 -05:00 (America/Guayaquil)**
+Sprint: SPR-003
+Estado resultante: READY_FOR_VALIDATION
+Resumen:
+- Flyway configurado y migraciones base creadas
+- Seed mínimo: tenant, branch, roles, permisos
+
+Evidencia:
+- Comandos ejecutados por el usuario:
+  - $env:SPRING_DATASOURCE_URL=jdbc:postgresql://localhost:5432/sisferrete
+  - $env:SPRING_DATASOURCE_USERNAME=postgres
+  - $env:SPRING_DATASOURCE_PASSWORD=<tu_password>
+  - cd backend
+  - ./mvnw spring-boot:run
+- Output:
+```text
+PEGAR OUTPUT AQUÍ
+```
 
 <!-- EOF -->
