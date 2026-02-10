@@ -16,6 +16,7 @@ Formato basado en “Keep a Changelog”, adaptado a este proyecto.
 
 ### Fixed
 - npm install dependency conflict in frontend (ESLint/TypeScript ESLint).
+- Flyway actualizado para soporte de PostgreSQL 17.x.
 
 ---
 

@@ -103,5 +103,24 @@ Evidencia:
 ```text
 PEGAR OUTPUT AQUÍ
 ```
+---
 
+**2026-02-09 21:08:15 -05:00 (America/Guayaquil)**
+Sprint: SPR-003
+Estado resultante: READY_FOR_VALIDATION
+Resumen:
+- Flyway actualizado para soportar PostgreSQL 17.x
+- Requiere reintento de migraciones
+
+Evidencia:
+- Comandos ejecutados por el usuario:
+  - =jdbc:postgresql://localhost:5432/sisferrete
+  - =postgres
+  - =<tu_password>
+  - cd backend
+  - ./mvnw spring-boot:run
+- Output:
+`	ext
+PEGAR OUTPUT AQUÍ
+`
 <!-- EOF -->
