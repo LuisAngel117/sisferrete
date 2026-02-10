@@ -36,6 +36,28 @@ type IamBranch = {
   name: string;
 };
 
+type CatalogCategory = {
+  id: string;
+  code: string;
+  name: string;
+  isActive: boolean;
+};
+
+type CatalogBrand = {
+  id: string;
+  code: string;
+  name: string;
+  isActive: boolean;
+};
+
+type CatalogUom = {
+  id: string;
+  code: string;
+  name: string;
+  allowsDecimals: boolean;
+  isActive: boolean;
+};
+
 const API_BASE = "http://localhost:8080";
 
 function App() {
@@ -51,6 +73,50 @@ function App() {
   const [roles, setRoles] = useState<IamRole[]>([]);
   const [permissions, setPermissions] = useState<IamPermission[]>([]);
   const [branches, setBranches] = useState<IamBranch[]>([]);
+
+  const [catalogStatus, setCatalogStatus] = useState("");
+  const [catalogLoading, setCatalogLoading] = useState(false);
+  const [categories, setCategories] = useState<CatalogCategory[]>([]);
+  const [brands, setBrands] = useState<CatalogBrand[]>([]);
+  const [uoms, setUoms] = useState<CatalogUom[]>([]);
+
+  const [newCategory, setNewCategory] = useState({
+    code: "",
+    name: "",
+    isActive: true,
+  });
+  const [updateCategory, setUpdateCategory] = useState({
+    id: "",
+    code: "",
+    name: "",
+    isActive: true,
+  });
+
+  const [newBrand, setNewBrand] = useState({
+    code: "",
+    name: "",
+    isActive: true,
+  });
+  const [updateBrand, setUpdateBrand] = useState({
+    id: "",
+    code: "",
+    name: "",
+    isActive: true,
+  });
+
+  const [newUom, setNewUom] = useState({
+    code: "",
+    name: "",
+    allowsDecimals: false,
+    isActive: true,
+  });
+  const [updateUom, setUpdateUom] = useState({
+    id: "",
+    code: "",
+    name: "",
+    allowsDecimals: false,
+    isActive: true,
+  });
 
   const [newUser, setNewUser] = useState({
     email: "",
@@ -490,6 +556,244 @@ function App() {
     }
   };
 
+  const fetchCategories = async () => {
+    setCatalogStatus("");
+    setCatalogLoading(true);
+    try {
+      const res = await fetch(`${API_BASE}/api/admin/catalog/categories`, {
+        headers: authHeaders,
+      });
+      if (!res.ok) {
+        throw new Error(await res.text());
+      }
+      const data: CatalogCategory[] = await res.json();
+      setCategories(data);
+      setCatalogStatus("Categorías cargadas.");
+    } catch (err) {
+      setCatalogStatus(err instanceof Error ? err.message : "Error inesperado.");
+    } finally {
+      setCatalogLoading(false);
+    }
+  };
+
+  const createCategory = async () => {
+    setCatalogStatus("");
+    setCatalogLoading(true);
+    try {
+      const res = await fetch(`${API_BASE}/api/admin/catalog/categories`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...authHeaders,
+        },
+        body: JSON.stringify(newCategory),
+      });
+      if (!res.ok) {
+        throw new Error(await res.text());
+      }
+      await fetchCategories();
+      setCatalogStatus("Categoría creada.");
+    } catch (err) {
+      setCatalogStatus(err instanceof Error ? err.message : "Error inesperado.");
+    } finally {
+      setCatalogLoading(false);
+    }
+  };
+
+  const updateCategoryData = async () => {
+    setCatalogStatus("");
+    if (!updateCategory.id) {
+      setCatalogStatus("Debes indicar id de categoría.");
+      return;
+    }
+    setCatalogLoading(true);
+    try {
+      const res = await fetch(
+        `${API_BASE}/api/admin/catalog/categories/${updateCategory.id}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            ...authHeaders,
+          },
+          body: JSON.stringify({
+            code: updateCategory.code,
+            name: updateCategory.name,
+            isActive: updateCategory.isActive,
+          }),
+        }
+      );
+      if (!res.ok) {
+        throw new Error(await res.text());
+      }
+      await fetchCategories();
+      setCatalogStatus("Categoría actualizada.");
+    } catch (err) {
+      setCatalogStatus(err instanceof Error ? err.message : "Error inesperado.");
+    } finally {
+      setCatalogLoading(false);
+    }
+  };
+
+  const fetchBrands = async () => {
+    setCatalogStatus("");
+    setCatalogLoading(true);
+    try {
+      const res = await fetch(`${API_BASE}/api/admin/catalog/brands`, {
+        headers: authHeaders,
+      });
+      if (!res.ok) {
+        throw new Error(await res.text());
+      }
+      const data: CatalogBrand[] = await res.json();
+      setBrands(data);
+      setCatalogStatus("Marcas cargadas.");
+    } catch (err) {
+      setCatalogStatus(err instanceof Error ? err.message : "Error inesperado.");
+    } finally {
+      setCatalogLoading(false);
+    }
+  };
+
+  const createBrand = async () => {
+    setCatalogStatus("");
+    setCatalogLoading(true);
+    try {
+      const res = await fetch(`${API_BASE}/api/admin/catalog/brands`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...authHeaders,
+        },
+        body: JSON.stringify(newBrand),
+      });
+      if (!res.ok) {
+        throw new Error(await res.text());
+      }
+      await fetchBrands();
+      setCatalogStatus("Marca creada.");
+    } catch (err) {
+      setCatalogStatus(err instanceof Error ? err.message : "Error inesperado.");
+    } finally {
+      setCatalogLoading(false);
+    }
+  };
+
+  const updateBrandData = async () => {
+    setCatalogStatus("");
+    if (!updateBrand.id) {
+      setCatalogStatus("Debes indicar id de marca.");
+      return;
+    }
+    setCatalogLoading(true);
+    try {
+      const res = await fetch(
+        `${API_BASE}/api/admin/catalog/brands/${updateBrand.id}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            ...authHeaders,
+          },
+          body: JSON.stringify({
+            code: updateBrand.code,
+            name: updateBrand.name,
+            isActive: updateBrand.isActive,
+          }),
+        }
+      );
+      if (!res.ok) {
+        throw new Error(await res.text());
+      }
+      await fetchBrands();
+      setCatalogStatus("Marca actualizada.");
+    } catch (err) {
+      setCatalogStatus(err instanceof Error ? err.message : "Error inesperado.");
+    } finally {
+      setCatalogLoading(false);
+    }
+  };
+
+  const fetchUoms = async () => {
+    setCatalogStatus("");
+    setCatalogLoading(true);
+    try {
+      const res = await fetch(`${API_BASE}/api/admin/catalog/uoms`, {
+        headers: authHeaders,
+      });
+      if (!res.ok) {
+        throw new Error(await res.text());
+      }
+      const data: CatalogUom[] = await res.json();
+      setUoms(data);
+      setCatalogStatus("Unidades cargadas.");
+    } catch (err) {
+      setCatalogStatus(err instanceof Error ? err.message : "Error inesperado.");
+    } finally {
+      setCatalogLoading(false);
+    }
+  };
+
+  const createUom = async () => {
+    setCatalogStatus("");
+    setCatalogLoading(true);
+    try {
+      const res = await fetch(`${API_BASE}/api/admin/catalog/uoms`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...authHeaders,
+        },
+        body: JSON.stringify(newUom),
+      });
+      if (!res.ok) {
+        throw new Error(await res.text());
+      }
+      await fetchUoms();
+      setCatalogStatus("Unidad creada.");
+    } catch (err) {
+      setCatalogStatus(err instanceof Error ? err.message : "Error inesperado.");
+    } finally {
+      setCatalogLoading(false);
+    }
+  };
+
+  const updateUomData = async () => {
+    setCatalogStatus("");
+    if (!updateUom.id) {
+      setCatalogStatus("Debes indicar id de unidad.");
+      return;
+    }
+    setCatalogLoading(true);
+    try {
+      const res = await fetch(
+        `${API_BASE}/api/admin/catalog/uoms/${updateUom.id}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            ...authHeaders,
+          },
+          body: JSON.stringify({
+            code: updateUom.code,
+            name: updateUom.name,
+            allowsDecimals: updateUom.allowsDecimals,
+            isActive: updateUom.isActive,
+          }),
+        }
+      );
+      if (!res.ok) {
+        throw new Error(await res.text());
+      }
+      await fetchUoms();
+      setCatalogStatus("Unidad actualizada.");
+    } catch (err) {
+      setCatalogStatus(err instanceof Error ? err.message : "Error inesperado.");
+    } finally {
+      setCatalogLoading(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900">
       <header className="border-b bg-white">
@@ -509,7 +813,8 @@ function App() {
         <section className="rounded-xl border bg-white p-6 shadow-sm">
           <h2 className="text-base font-semibold">Token de acceso</h2>
           <p className="mt-1 text-sm text-slate-500">
-            Pega un access token con permiso IAM_MANAGE y CONFIG_VAT_EDIT.
+            Pega un access token con permiso IAM_MANAGE, CONFIG_VAT_EDIT y
+            CATALOG_MANAGE.
           </p>
           <div className="mt-4 grid gap-3">
             <input
@@ -966,6 +1271,416 @@ function App() {
             {branches.length > 0 && (
               <pre className="rounded-md bg-slate-100 p-3 text-xs text-slate-700">
                 {JSON.stringify(branches, null, 2)}
+              </pre>
+            )}
+          </div>
+        </section>
+
+        <section className="rounded-xl border bg-white p-6 shadow-sm">
+          <h2 className="text-base font-semibold">Catálogo base</h2>
+          <p className="mt-1 text-sm text-slate-500">
+            Administra categorías, marcas y unidades de medida (UoM).
+          </p>
+
+          <div className="mt-4 grid gap-4">
+            <div className="flex flex-wrap gap-3">
+              <button
+                type="button"
+                onClick={fetchCategories}
+                className="h-10 rounded-md border border-slate-300 px-4 text-sm font-semibold"
+                disabled={catalogLoading}
+              >
+                Ver categorías
+              </button>
+              <button
+                type="button"
+                onClick={fetchBrands}
+                className="h-10 rounded-md border border-slate-300 px-4 text-sm font-semibold"
+                disabled={catalogLoading}
+              >
+                Ver marcas
+              </button>
+              <button
+                type="button"
+                onClick={fetchUoms}
+                className="h-10 rounded-md border border-slate-300 px-4 text-sm font-semibold"
+                disabled={catalogLoading}
+              >
+                Ver unidades
+              </button>
+            </div>
+
+            <div className="grid gap-6 lg:grid-cols-2">
+              <div className="grid gap-3">
+                <h3 className="text-sm font-semibold text-slate-700">
+                  Crear categoría
+                </h3>
+                <input
+                  value={newCategory.code}
+                  onChange={(event) =>
+                    setNewCategory((prev) => ({
+                      ...prev,
+                      code: event.target.value,
+                    }))
+                  }
+                  placeholder="HERRAMIENTAS"
+                  className="h-10 rounded-md border border-slate-200 px-3 text-sm"
+                />
+                <input
+                  value={newCategory.name}
+                  onChange={(event) =>
+                    setNewCategory((prev) => ({
+                      ...prev,
+                      name: event.target.value,
+                    }))
+                  }
+                  placeholder="Herramientas"
+                  className="h-10 rounded-md border border-slate-200 px-3 text-sm"
+                />
+                <label className="flex items-center gap-2 text-sm text-slate-600">
+                  <input
+                    type="checkbox"
+                    checked={newCategory.isActive}
+                    onChange={(event) =>
+                      setNewCategory((prev) => ({
+                        ...prev,
+                        isActive: event.target.checked,
+                      }))
+                    }
+                  />
+                  Activo
+                </label>
+                <button
+                  type="button"
+                  onClick={createCategory}
+                  className="h-10 rounded-md bg-slate-900 text-sm font-semibold text-white"
+                  disabled={catalogLoading}
+                >
+                  Crear categoría
+                </button>
+              </div>
+
+              <div className="grid gap-3">
+                <h3 className="text-sm font-semibold text-slate-700">
+                  Actualizar categoría
+                </h3>
+                <input
+                  value={updateCategory.id}
+                  onChange={(event) =>
+                    setUpdateCategory((prev) => ({
+                      ...prev,
+                      id: event.target.value,
+                    }))
+                  }
+                  placeholder="id categoría"
+                  className="h-10 rounded-md border border-slate-200 px-3 text-sm"
+                />
+                <input
+                  value={updateCategory.code}
+                  onChange={(event) =>
+                    setUpdateCategory((prev) => ({
+                      ...prev,
+                      code: event.target.value,
+                    }))
+                  }
+                  placeholder="HERRAMIENTAS"
+                  className="h-10 rounded-md border border-slate-200 px-3 text-sm"
+                />
+                <input
+                  value={updateCategory.name}
+                  onChange={(event) =>
+                    setUpdateCategory((prev) => ({
+                      ...prev,
+                      name: event.target.value,
+                    }))
+                  }
+                  placeholder="Herramientas"
+                  className="h-10 rounded-md border border-slate-200 px-3 text-sm"
+                />
+                <label className="flex items-center gap-2 text-sm text-slate-600">
+                  <input
+                    type="checkbox"
+                    checked={updateCategory.isActive}
+                    onChange={(event) =>
+                      setUpdateCategory((prev) => ({
+                        ...prev,
+                        isActive: event.target.checked,
+                      }))
+                    }
+                  />
+                  Activo
+                </label>
+                <button
+                  type="button"
+                  onClick={updateCategoryData}
+                  className="h-10 rounded-md border border-slate-300 text-sm font-semibold"
+                  disabled={catalogLoading}
+                >
+                  Guardar cambios
+                </button>
+              </div>
+
+              <div className="grid gap-3">
+                <h3 className="text-sm font-semibold text-slate-700">
+                  Crear marca
+                </h3>
+                <input
+                  value={newBrand.code}
+                  onChange={(event) =>
+                    setNewBrand((prev) => ({
+                      ...prev,
+                      code: event.target.value,
+                    }))
+                  }
+                  placeholder="BOSCH"
+                  className="h-10 rounded-md border border-slate-200 px-3 text-sm"
+                />
+                <input
+                  value={newBrand.name}
+                  onChange={(event) =>
+                    setNewBrand((prev) => ({
+                      ...prev,
+                      name: event.target.value,
+                    }))
+                  }
+                  placeholder="Bosch"
+                  className="h-10 rounded-md border border-slate-200 px-3 text-sm"
+                />
+                <label className="flex items-center gap-2 text-sm text-slate-600">
+                  <input
+                    type="checkbox"
+                    checked={newBrand.isActive}
+                    onChange={(event) =>
+                      setNewBrand((prev) => ({
+                        ...prev,
+                        isActive: event.target.checked,
+                      }))
+                    }
+                  />
+                  Activo
+                </label>
+                <button
+                  type="button"
+                  onClick={createBrand}
+                  className="h-10 rounded-md bg-slate-900 text-sm font-semibold text-white"
+                  disabled={catalogLoading}
+                >
+                  Crear marca
+                </button>
+              </div>
+
+              <div className="grid gap-3">
+                <h3 className="text-sm font-semibold text-slate-700">
+                  Actualizar marca
+                </h3>
+                <input
+                  value={updateBrand.id}
+                  onChange={(event) =>
+                    setUpdateBrand((prev) => ({
+                      ...prev,
+                      id: event.target.value,
+                    }))
+                  }
+                  placeholder="id marca"
+                  className="h-10 rounded-md border border-slate-200 px-3 text-sm"
+                />
+                <input
+                  value={updateBrand.code}
+                  onChange={(event) =>
+                    setUpdateBrand((prev) => ({
+                      ...prev,
+                      code: event.target.value,
+                    }))
+                  }
+                  placeholder="BOSCH"
+                  className="h-10 rounded-md border border-slate-200 px-3 text-sm"
+                />
+                <input
+                  value={updateBrand.name}
+                  onChange={(event) =>
+                    setUpdateBrand((prev) => ({
+                      ...prev,
+                      name: event.target.value,
+                    }))
+                  }
+                  placeholder="Bosch"
+                  className="h-10 rounded-md border border-slate-200 px-3 text-sm"
+                />
+                <label className="flex items-center gap-2 text-sm text-slate-600">
+                  <input
+                    type="checkbox"
+                    checked={updateBrand.isActive}
+                    onChange={(event) =>
+                      setUpdateBrand((prev) => ({
+                        ...prev,
+                        isActive: event.target.checked,
+                      }))
+                    }
+                  />
+                  Activo
+                </label>
+                <button
+                  type="button"
+                  onClick={updateBrandData}
+                  className="h-10 rounded-md border border-slate-300 text-sm font-semibold"
+                  disabled={catalogLoading}
+                >
+                  Guardar cambios
+                </button>
+              </div>
+
+              <div className="grid gap-3">
+                <h3 className="text-sm font-semibold text-slate-700">
+                  Crear unidad
+                </h3>
+                <input
+                  value={newUom.code}
+                  onChange={(event) =>
+                    setNewUom((prev) => ({
+                      ...prev,
+                      code: event.target.value,
+                    }))
+                  }
+                  placeholder="KILOGRAMO"
+                  className="h-10 rounded-md border border-slate-200 px-3 text-sm"
+                />
+                <input
+                  value={newUom.name}
+                  onChange={(event) =>
+                    setNewUom((prev) => ({
+                      ...prev,
+                      name: event.target.value,
+                    }))
+                  }
+                  placeholder="Kilogramo"
+                  className="h-10 rounded-md border border-slate-200 px-3 text-sm"
+                />
+                <label className="flex items-center gap-2 text-sm text-slate-600">
+                  <input
+                    type="checkbox"
+                    checked={newUom.allowsDecimals}
+                    onChange={(event) =>
+                      setNewUom((prev) => ({
+                        ...prev,
+                        allowsDecimals: event.target.checked,
+                      }))
+                    }
+                  />
+                  Permite decimales
+                </label>
+                <label className="flex items-center gap-2 text-sm text-slate-600">
+                  <input
+                    type="checkbox"
+                    checked={newUom.isActive}
+                    onChange={(event) =>
+                      setNewUom((prev) => ({
+                        ...prev,
+                        isActive: event.target.checked,
+                      }))
+                    }
+                  />
+                  Activo
+                </label>
+                <button
+                  type="button"
+                  onClick={createUom}
+                  className="h-10 rounded-md bg-slate-900 text-sm font-semibold text-white"
+                  disabled={catalogLoading}
+                >
+                  Crear unidad
+                </button>
+              </div>
+
+              <div className="grid gap-3">
+                <h3 className="text-sm font-semibold text-slate-700">
+                  Actualizar unidad
+                </h3>
+                <input
+                  value={updateUom.id}
+                  onChange={(event) =>
+                    setUpdateUom((prev) => ({
+                      ...prev,
+                      id: event.target.value,
+                    }))
+                  }
+                  placeholder="id unidad"
+                  className="h-10 rounded-md border border-slate-200 px-3 text-sm"
+                />
+                <input
+                  value={updateUom.code}
+                  onChange={(event) =>
+                    setUpdateUom((prev) => ({
+                      ...prev,
+                      code: event.target.value,
+                    }))
+                  }
+                  placeholder="KILOGRAMO"
+                  className="h-10 rounded-md border border-slate-200 px-3 text-sm"
+                />
+                <input
+                  value={updateUom.name}
+                  onChange={(event) =>
+                    setUpdateUom((prev) => ({
+                      ...prev,
+                      name: event.target.value,
+                    }))
+                  }
+                  placeholder="Kilogramo"
+                  className="h-10 rounded-md border border-slate-200 px-3 text-sm"
+                />
+                <label className="flex items-center gap-2 text-sm text-slate-600">
+                  <input
+                    type="checkbox"
+                    checked={updateUom.allowsDecimals}
+                    onChange={(event) =>
+                      setUpdateUom((prev) => ({
+                        ...prev,
+                        allowsDecimals: event.target.checked,
+                      }))
+                    }
+                  />
+                  Permite decimales
+                </label>
+                <label className="flex items-center gap-2 text-sm text-slate-600">
+                  <input
+                    type="checkbox"
+                    checked={updateUom.isActive}
+                    onChange={(event) =>
+                      setUpdateUom((prev) => ({
+                        ...prev,
+                        isActive: event.target.checked,
+                      }))
+                    }
+                  />
+                  Activo
+                </label>
+                <button
+                  type="button"
+                  onClick={updateUomData}
+                  className="h-10 rounded-md border border-slate-300 text-sm font-semibold"
+                  disabled={catalogLoading}
+                >
+                  Guardar cambios
+                </button>
+              </div>
+            </div>
+
+            {catalogStatus && (
+              <p className="text-sm text-slate-600">{catalogStatus}</p>
+            )}
+            {categories.length > 0 && (
+              <pre className="rounded-md bg-slate-100 p-3 text-xs text-slate-700">
+                {JSON.stringify(categories, null, 2)}
+              </pre>
+            )}
+            {brands.length > 0 && (
+              <pre className="rounded-md bg-slate-100 p-3 text-xs text-slate-700">
+                {JSON.stringify(brands, null, 2)}
+              </pre>
+            )}
+            {uoms.length > 0 && (
+              <pre className="rounded-md bg-slate-100 p-3 text-xs text-slate-700">
+                {JSON.stringify(uoms, null, 2)}
               </pre>
             )}
           </div>

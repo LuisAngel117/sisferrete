@@ -13,6 +13,8 @@ Formato basado en “Keep a Changelog”, adaptado a este proyecto.
 - Audit base + hooks (SPR-005).
 - Tenant config IVA protegido (SPR-006).
 - IAM admin usable + branch access (SPR-007).
+- Catálogo base (categorías, marcas, UoM) + permiso CATALOG_MANAGE (SPR-008).
+- RFC-0002: contrato UoM (tabla + campo decimal_scale).
 
 ### Changed
 - N/A

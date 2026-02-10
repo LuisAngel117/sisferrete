@@ -231,4 +231,31 @@ Evidencia:
 ```text
 PEGAR OUTPUT AQUÍ
 ```
+---
+
+**2026-02-10 09:30:00 -05:00 (America/Guayaquil)**
+Sprint: SPR-008
+Estado resultante: READY_FOR_VALIDATION
+Resumen:
+- Catálogo base (categorías, marcas, UoM) + permiso CATALOG_MANAGE
+- API admin y UI mínima de catálogo
+- RFC-0002 por conflicto de naming UoM en docs
+
+Evidencia:
+- Comandos ejecutados por el usuario:
+  - `$env:SPRING_DATASOURCE_URL="jdbc:postgresql://localhost:5432/sisferrete"`
+  - `$env:SPRING_DATASOURCE_USERNAME="postgres"`
+  - `$env:SPRING_DATASOURCE_PASSWORD="TU_PASSWORD_REAL"`
+  - `$env:SISFERRETE_ADMIN_EMAIL="admin@demo.com"`
+  - `$env:SISFERRETE_ADMIN_PASSWORD="TU_PASSWORD_REAL"`
+  - `cd backend`
+  - `./mvnw spring-boot:run`
+  - `cd ..`
+  - `pwsh -ExecutionPolicy Bypass -File .\scripts\smoke\sprint8.ps1`
+  - `curl -X POST http://localhost:8080/api/auth/login -H "Content-Type: application/json" -d "{\"email\":\"<usuario_sin_permiso>\",\"password\":\"<pass>\"}"`
+  - `curl http://localhost:8080/api/admin/catalog/uoms -H "Authorization: Bearer <TOKEN>"`
+- Output:
+```text
+PEGAR OUTPUT AQUÍ
+```
 <!-- EOF -->
